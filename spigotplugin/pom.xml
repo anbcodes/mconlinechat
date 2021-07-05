@@ -9,7 +9,7 @@
 
     <!-- Plugin Information -->
     <!-- Name, Description, and URL are used in plugin.yml -->
-    <name>MC Online Chat Plugin</name>
+    <name>MCOnlineChatPlugin</name>
     <description>The connector plugin for mc online chat</description>
     <url>https://github.com/anbcodes/mconlinechat</url>
 

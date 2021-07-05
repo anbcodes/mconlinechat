@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>anb.codes.chat</groupId>
   <artifactId>MCOnlineChat</artifactId>
-  <name>MC Online Chat Plugin</name>
+  <name>MCOnlineChatPlugin</name>
   <version>1.0</version>
   <description>The connector plugin for mc online chat</description>
   <url>https://github.com/anbcodes/mconlinechat</url>
