@@ -1,4 +1,4 @@
-package anb.codes.mcbot.spigotplugin;
+package anb.codes.mconlinechat;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ public class MCOnlineChatPlugin extends JavaPlugin {
         getDataFolder().mkdir();
         history = new History("history.txt", this);
         users = new Users("users.json", this);
-        server = new Server(this, 31661);
+        server = new Server(this, 31662);
         server.setReuseAddr(true);
         server.start();
         this.getLogger().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());

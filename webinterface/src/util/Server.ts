@@ -17,7 +17,7 @@ export default class Server {
   public authID: string = localStorage.getItem('authID');
 
   constructor(host: string, port = 31661) {
-    this.ws = new WebSocket(`ws://${host}:${port}`);
+    this.ws = new WebSocket(`wss://${host}:${port}`);
     this.ws.onopen = (ev) => this.callListeners("OPEN", ev);
     this.ws.onclose = (ev) => this.callListeners("CLOSE", ev);
     this.ws.onmessage = (ev) => this.callListeners("WS_MESSAGE", ev);

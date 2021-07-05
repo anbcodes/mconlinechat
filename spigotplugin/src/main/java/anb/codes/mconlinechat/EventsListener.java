@@ -1,4 +1,4 @@
-package anb.codes.mcbot.spigotplugin;
+package anb.codes.mconlinechat;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

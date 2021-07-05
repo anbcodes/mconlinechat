@@ -1,4 +1,4 @@
-package anb.codes.mcbot.spigotplugin;
+package anb.codes.mconlinechat;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class Server extends WebSocketServer {
       } else {
         socket.send(new Message("LOGIN_FAILED").toJSON());
       }
-    } else if (message.type.equals("GET_HISTORY")) {
+    } else if (message.type.equals("GET_HISTORY") && username != null) {
       int page = Integer.parseInt(message.data[0]);
       ArrayList<String> lines = plugin.history.getLast(100, 100 * (page - 1));
       lines.add(String.valueOf(page));
@@ -99,4 +99,5 @@ public class Server extends WebSocketServer {
       }
     }
   }
+
 }

@@ -1,4 +1,4 @@
-package anb.codes.mcbot.spigotplugin;
+package anb.codes.mconlinechat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

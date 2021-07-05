@@ -1,4 +1,4 @@
-package anb.codes.mcbot.spigotplugin;
+package anb.codes.mconlinechat;
 
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
@@ -62,6 +62,11 @@ public class Users {
     String json = usersFile.read();
     Type empMapType = new TypeToken<Map<String, String>>() {
     }.getType();
-    users = new Gson().fromJson(json, empMapType);
+    Map<String, String> newUsers = new Gson().fromJson(json, empMapType);
+    if (newUsers == null) {
+      users = new HashMap<>();
+    } else {
+      users = newUsers;
+    }
   }
 }
