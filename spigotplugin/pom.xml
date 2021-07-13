@@ -41,7 +41,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>20.7.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.spigotmc</groupId>
@@ -77,6 +93,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <filtering>true</filtering>
                 <includes>
                     <include>plugin.yml</include>
+                    <include>apikey.txt</include>
                 </includes>
             </resource>
             <resource>
@@ -86,6 +103,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <excludes>
                     <exclude>**/*.java</exclude>
                     <exclude>plugin.yml</exclude>
+                    <exclude>apikey.txt</exclude>
                 </excludes>
             </resource>
         </resources>

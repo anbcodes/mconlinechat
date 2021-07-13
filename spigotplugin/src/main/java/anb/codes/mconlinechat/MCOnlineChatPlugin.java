@@ -24,7 +24,7 @@ public class MCOnlineChatPlugin extends JavaPlugin {
         getDataFolder().mkdir();
         history = new History("history.txt", this);
         users = new Users("users.json", this);
-        server = new Server(this, 31662);
+        server = new Server(this, 31663);
         server.setReuseAddr(true);
         server.start();
         this.getLogger().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());

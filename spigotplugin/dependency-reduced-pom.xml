@@ -35,6 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <directory>src/main/resources</directory>
         <includes>
           <include>plugin.yml</include>
+          <include>apikey.txt</include>
         </includes>
       </resource>
       <resource>
@@ -42,6 +43,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <excludes>
           <exclude>**/*.java</exclude>
           <exclude>plugin.yml</exclude>
+          <exclude>apikey.txt</exclude>
         </excludes>
       </resource>
     </resources>
@@ -86,6 +88,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
     </repository>
   </repositories>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>20.7.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <properties>
     <mainClass>anb.codes.mconlinechat.MCOnlineChatPlugin</mainClass>
     <author>Anbcodes</author>

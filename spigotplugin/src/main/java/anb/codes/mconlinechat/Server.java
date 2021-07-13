@@ -1,6 +1,13 @@
 package anb.codes.mconlinechat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -98,6 +105,15 @@ public class Server extends WebSocketServer {
         client.send(new Message("NEW_MESSAGE", message).toJSON());
       }
     }
+  }
+
+  static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+
+  public void sendGetRequest(String reqUrl) throws IOException {
+    GenericUrl url = new GenericUrl(reqUrl);
+    HttpRequest request = HTTP_TRANSPORT.createRequestFactory().buildGetRequest(url);
+    HttpResponse response = request.execute();
+    response.disconnect();
   }
 
 }

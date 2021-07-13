@@ -1,7 +1,13 @@
 export type MessageType =
-  "LOGIN" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "GET_HISTORY" | "HISTORY_DATA" | "SEND" | "NEW_MESSAGE" | "OPEN" | "CLOSE" | "ERROR" | "WS_MESSAGE"
+  "LOGIN" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "GET_HISTORY" | "HISTORY_DATA" | "SEND" | "NEW_MESSAGE" | "POINTS" | "GET" | "OPEN" | "CLOSE" | "ERROR" | "WS_MESSAGE"
 
-
+export interface MapPoint {
+  x: number;
+  z: number;
+  type: string;
+  name: string;
+  dim: string;
+}
 
 interface Message {
   type: MessageType,
@@ -9,15 +15,15 @@ interface Message {
   data: string[],
 }
 
-type HandlerFunc = (data: string[] | MessageEvent<any> | CloseEvent | Event | ErrorEvent) => void;
+type HandlerFunc = (data: string[] | MapPoint[] | MessageEvent<any> | CloseEvent | Event | ErrorEvent) => void;
 
 export default class Server {
   private listeners: Record<MessageType, HandlerFunc[]> = {} as Record<MessageType, HandlerFunc[]>;
   public ws: WebSocket;
   public authID: string = localStorage.getItem('authID');
 
-  constructor(host: string, port = 31661) {
-    this.ws = new WebSocket(`wss://${host}:${port}`);
+  constructor(host: string, path = '/', port = 31661) {
+    this.ws = new WebSocket(`wss://${host}:${port}${path}`);
     this.ws.onopen = (ev) => this.callListeners("OPEN", ev);
     this.ws.onclose = (ev) => this.callListeners("CLOSE", ev);
     this.ws.onmessage = (ev) => this.callListeners("WS_MESSAGE", ev);
@@ -59,6 +65,13 @@ export default class Server {
     }));
   }
 
+  public getPoints(): void {
+    this.ws.send(JSON.stringify({
+      type: "GET",
+      authID: this.authID,
+    }));
+  }
+
   public sendMessage(msg: string): void {
     console.log('Sending message', msg);
     this.ws.send(JSON.stringify({
@@ -68,7 +81,7 @@ export default class Server {
     }))
   }
 
-  private callListeners(type: MessageType, data: string[] | MessageEvent<any> | CloseEvent | Event | ErrorEvent) {
+  private callListeners(type: MessageType, data: MapPoint[] | string[] | MessageEvent<any> | CloseEvent | Event | ErrorEvent) {
     if (this.listeners[type]) {
       this.listeners[type].forEach(l => l(data));
     }

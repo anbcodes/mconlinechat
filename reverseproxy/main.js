@@ -10,24 +10,18 @@ var proxy = require('redbird')({
   }
 });
 
-// Route to any global ip
-
-// Route to any local ip, for example from docker containers.
-proxy.register("mc.anb.codes", "http://127.0.0.1:31662", {
+let config = {
   ssl: {
     letsencrypt: {
       email: 'anbcodes@protonmail.com', // Domain owner/admin email
       production: true, // WARNING: Only use this flag when the proxy is verified to work correctly to avoid being banned!
     }
   }
-});
+}
 
-//
-// LetsEncrypt requires a minimal web server for handling the challenges, this is by default on port 3000
-// it can be configured when initiating the proxy. This web server is only used by Redbird internally so most of the time
-// you  do not need to do anything special other than avoid having other web services in the same host running
-// on the same port.
+// Route to any global ip
 
-//
-// HTTP2 Support using LetsEncrypt for the certificates
-//
+// Route to any local ip, for example from docker containers.
+proxy.register("mc.anb.codes/", "http://127.0.0.1:31663", config);
+
+proxy.register("mc.anb.codes/map", "http://127.0.0.1:31664", config);
