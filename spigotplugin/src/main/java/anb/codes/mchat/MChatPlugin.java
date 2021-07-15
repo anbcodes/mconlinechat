@@ -13,6 +13,7 @@ import anb.codes.mchat.database.DatabaseQuery;
 public class MChatPlugin extends JavaPlugin {
     public Server server;
     public Users users = new Users();
+    public LoginCodes loginCodes = new LoginCodes();
     public Connection db;
 
     private static MChatPlugin instance;
@@ -49,9 +50,7 @@ public class MChatPlugin extends JavaPlugin {
         server.broadcastChatMessageToAuthenticated(msg);
         if (msg.fromWebsite) {
             this.getServer().broadcastMessage("[" + msg.sender + "] " + msg.message);
-        } else if (msg.sender == null || msg.sender.equals("")) {
-            this.getServer().broadcastMessage(msg.message);
-        } else {
+        } else if (msg.sender != null && !msg.sender.equals("")) {
             this.getServer().broadcastMessage("<" + msg.sender + "> " + msg.message);
         }
     }

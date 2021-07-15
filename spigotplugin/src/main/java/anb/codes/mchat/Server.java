@@ -54,41 +54,79 @@ public class Server extends WebSocketServer {
   public void onMessage(WebSocket socket, String messageEnc) {
     JsonObject message = gson.fromJson(messageEnc, JsonObject.class);
     Logger.get().debug("Got message " + message.toString());
-    if (message.get("type") == null) {
-      return;
-    }
-    String messageType = message.get("type").getAsString();
 
-    String username = null;
-
-    if (message.get("authID") != null) {
-      username = MChatPlugin.get().users.getFromToken(message.get("authID").getAsString());
-    }
-
-    Logger.get().debug("Message type " + messageType + " username " + username);
+    String messageType = getMessageType(message);
+    Logger.get().debug("Message type " + messageType);
 
     if (messageType.equals("auth")) {
-      if (username != null) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty("type", "authSuccess");
-        Logger.get().debug("Sending response " + obj.toString());
-        socket.send(obj.toString());
-        authenticatedClients.add(socket);
-      } else {
-        JsonObject obj = new JsonObject();
-        obj.addProperty("type", "authFailed");
-        Logger.get().debug("Sending response " + obj.toString());
-        socket.send(obj.toString());
-      }
+      handleAuth(socket, message);
+    } else if (messageType.equals("sendMessage")) {
+      handleSendMessage(message);
+    } else if (messageType.equals("login")) {
+      handleLogin(socket, message);
     }
+  }
 
-    if (messageType.equals("sendMessage") && username != null && message.get("message") != null
-        && !message.get("message").getAsString().equals("")) {
-      ChatMessage msg = new ChatMessage(message.get("message").getAsString(), username);
-      msg.fromWebsite = true;
-      MChatPlugin.get().broadcastMessage(msg);
+  private String getMessageType(JsonObject message) {
+    if (message.get("type") == null) {
+      return null;
     }
+    return message.get("type").getAsString();
+  }
 
+  private String getUsername(JsonObject message) {
+    if (message.get("authID") != null) {
+      return MChatPlugin.get().users.getFromToken(message.get("authID").getAsString());
+    }
+    return null;
+  }
+
+  private void handleAuth(WebSocket socket, JsonObject message) {
+    String username = getUsername(message);
+
+    if (username != null) {
+      JsonObject obj = new JsonObject();
+      obj.addProperty("type", "authSuccess");
+      Logger.get().debug("Sending response " + obj.toString());
+      socket.send(obj.toString());
+      authenticatedClients.add(socket);
+    } else {
+      JsonObject obj = new JsonObject();
+      obj.addProperty("type", "authFailed");
+      Logger.get().debug("Sending response " + obj.toString());
+      socket.send(obj.toString());
+    }
+  }
+
+  private void handleSendMessage(JsonObject message) {
+    String username = getUsername(message);
+
+    if (username == null || message.get("message") == null || message.get("message").getAsString().equals("")) {
+      return;
+    }
+    ChatMessage msg = new ChatMessage(message.get("message").getAsString(), username);
+    msg.fromWebsite = true;
+    MChatPlugin.get().broadcastMessage(msg);
+  }
+
+  private void handleLogin(WebSocket socket, JsonObject message) {
+    if (message.get("code") == null || message.get("code").getAsString().equals("")) {
+      return;
+    }
+    String code = message.get("code").getAsString();
+    String authID = MChatPlugin.get().loginCodes.login(code);
+    if (authID != null) {
+      JsonObject obj = new JsonObject();
+      obj.addProperty("type", "loginSuccess");
+      obj.addProperty("authID", authID);
+      Logger.get().debug("Sending response " + obj.toString());
+      socket.send(obj.toString());
+    } else {
+      JsonObject obj = new JsonObject();
+      obj.addProperty("type", "loginFailed");
+      Logger.get().debug("Sending response " + obj.toString());
+      socket.send(obj.toString());
+    }
   }
 
   @Override
