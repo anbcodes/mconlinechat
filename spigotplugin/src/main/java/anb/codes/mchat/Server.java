@@ -84,7 +84,9 @@ public class Server extends WebSocketServer {
 
     if (messageType.equals("sendMessage") && username != null && message.get("message") != null
         && !message.get("message").getAsString().equals("")) {
-      MChatPlugin.get().broadcastMessage("[" + username + "] " + message.get("message").getAsString());
+      ChatMessage msg = new ChatMessage(message.get("message").getAsString(), username);
+      msg.fromWebsite = true;
+      MChatPlugin.get().broadcastMessage(msg);
     }
 
   }
@@ -109,13 +111,13 @@ public class Server extends WebSocketServer {
     }
   }
 
-  public void broadcastChatMessageToAuthenticated(String message) {
+  public void broadcastChatMessageToAuthenticated(ChatMessage message) {
     Logger.get().debug("Broadcasting chat message " + message);
     for (WebSocket client : clients) {
       if (authenticatedClients.contains(client)) {
         JsonObject obj = new JsonObject();
         obj.addProperty("type", "chatMessage");
-        obj.addProperty("message", message);
+        obj.addProperty("message", gson.toJson(message));
         client.send(obj.toString());
       }
     }

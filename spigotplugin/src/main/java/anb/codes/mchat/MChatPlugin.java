@@ -41,10 +41,18 @@ public class MChatPlugin extends JavaPlugin {
         server.setReuseAddr(true);
         server.start();
         Logger.get().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());
+
+        getServer().getPluginManager().registerEvents(new EventsListener(), this);
     }
 
-    public void broadcastMessage(String msg) {
+    public void broadcastMessage(ChatMessage msg) {
         server.broadcastChatMessageToAuthenticated(msg);
-        this.getServer().broadcastMessage(msg);
+        if (msg.fromWebsite) {
+            this.getServer().broadcastMessage("[" + msg.sender + "] " + msg.message);
+        } else if (msg.sender == null || msg.sender.equals("")) {
+            this.getServer().broadcastMessage(msg.message);
+        } else {
+            this.getServer().broadcastMessage("<" + msg.sender + "> " + msg.message);
+        }
     }
 }

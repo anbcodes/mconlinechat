@@ -26,18 +26,22 @@ public class EventsListener implements Listener {
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
     Logger.get().debug("Join " + event.getJoinMessage());
-    try {
-      InputStream inputStream = getClass().getClassLoader().getResourceAsStream("apikey.txt");
-      String apikey = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
+    // try {
+    // InputStream inputStream =
+    // getClass().getClassLoader().getResourceAsStream("apikey.txt");
+    // String apikey = new BufferedReader(new
+    // InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
 
-      if (apikey != null && !apikey.equals("")) {
-        sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey + "&PushTitle="
-            + event.getPlayer().getDisplayName() + "%20joined%20the%20server" + "&PushText=%20");
-      }
-    } catch (IOException e) {
-      Logger.get().error("Failed to read apikey file", e);
-    }
-    MChatPlugin.get().broadcastMessage(event.getJoinMessage());
+    // if (apikey != null && !apikey.equals("")) {
+    // sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey +
+    // "&PushTitle="
+    // + event.getPlayer().getDisplayName() + "%20joined%20the%20server" +
+    // "&PushText=%20");
+    // }
+    // } catch (IOException e) {
+    // Logger.get().error("Failed to read apikey file", e);
+    // }
+    MChatPlugin.get().broadcastMessage(new ChatMessage(event.getJoinMessage(), ""));
   }
 
   static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
@@ -52,13 +56,13 @@ public class EventsListener implements Listener {
   @EventHandler
   public void onPlayerLeave(PlayerQuitEvent event) {
     Logger.get().debug("Leave " + event.getQuitMessage());
-    MChatPlugin.get().broadcastMessage(event.getQuitMessage());
+    MChatPlugin.get().broadcastMessage(new ChatMessage(event.getQuitMessage(), ""));
   }
 
   @EventHandler
   public void onPlayerDeath(PlayerDeathEvent event) {
     Logger.get().debug("Death " + event.getDeathMessage());
-    MChatPlugin.get().broadcastMessage(event.getDeathMessage());
+    MChatPlugin.get().broadcastMessage(new ChatMessage(event.getDeathMessage(), ""));
   }
 
   @EventHandler
@@ -66,7 +70,7 @@ public class EventsListener implements Listener {
     String format = event.getFormat();
     String playerName = event.getPlayer().getDisplayName();
     String message = event.getMessage();
-    MChatPlugin.get().broadcastMessage(String.format(format, playerName, message));
+    MChatPlugin.get().broadcastMessage(new ChatMessage(message, playerName));
     Logger.get().debug("Chat " + String.format(format, playerName, message));
   }
 
