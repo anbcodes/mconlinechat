@@ -1,97 +1,101 @@
-export type MessageType =
-  "AUTH_FAILED" | "AUTH_SUCCESS" |"LOGIN" | "LOGIN_SUCCESS" | "LOGIN_FAILED" | "GET_HISTORY" | "HISTORY_DATA" | "SEND" | "NEW_MESSAGE" | "POINTS" | "GET" | "OPEN" | "CLOSE" | "ERROR" | "WS_MESSAGE"
-
-export interface MapPoint {
-  x: number;
-  z: number;
-  type: string;
-  name: string;
-  dim: string;
-}
-
-interface Message {
-  type: MessageType,
-  authID: string | null,
-  data: string[],
-}
-
-type HandlerFunc = (data: any) => void;
+type MessageType = "chatMessage" | "authSuccess" | "authFailed" | "open" | "close" | "error" | "message";
 
 export default class Server {
-  private listeners: Record<MessageType, HandlerFunc[]> = {} as Record<MessageType, HandlerFunc[]>;
-  public ws: WebSocket;
-  public authID: string;
+  private ws: WebSocket | null;
+  private listeners: {[type: string]: ((data: any) => void)[]} = {};
+  private onceListeners: {[type: string]: ((data: any) => void)[]} = {};
+  private _authenticated = false;
+  private authID: string;
+
+  public get authenticated(): boolean {
+    return this._authenticated;
+  }
+
+  public get connected(): boolean {
+    return this.ws.readyState === this.ws.OPEN;
+  }
 
   constructor() {
-    this.on("WS_MESSAGE", this.handleMessage.bind(this));
-    this.on("LOGIN_SUCCESS", this.handleLogin.bind(this));
+    this.on("authSuccess", () => this._authenticated = true);
+    this.on("authFailed", () => this.authID = null);
+    this.on('message', (data) => {
+      console.log(data.data);
+      const msg = JSON.parse(data.data);
+      this.callListeners(msg.type, msg);
+    })
   }
 
-  public connect(host: string, path = '/', port = 41663): void {
-    this.ws = new WebSocket(`ws://${host}:${port}${path}`);
-    this.ws.onopen = (ev) => this.callListeners("OPEN", ev);
-    this.ws.onclose = (ev) => this.callListeners("CLOSE", ev);
-    this.ws.onmessage = (ev) => this.callListeners("WS_MESSAGE", ev);
-    this.ws.onerror = (ev) => this.callListeners("ERROR", ev);
-  }
-
-  public on(type: MessageType, func: HandlerFunc): void {
-    if (this.listeners[type] == undefined) {
-      this.listeners[type] = [func];
+  public connect(host: string, port = 31661, secure = true): void {
+    if (secure) {
+      this.ws = new WebSocket(`wss://${host}:${port}`);
     } else {
-      this.listeners[type].push(func);
+      this.ws = new WebSocket(`ws://${host}:${port}`);
     }
+    this.ws.onmessage = (event) => this.callListeners('message', event);
+    this.ws.onopen = (event) => this.callListeners('open', event);
+    this.ws.onclose = (event) => this.callListeners('close', event);
   }
 
-  public login(code: string): void {
-    console.log('Logging in with code', code);
-    console.log(this.listeners);
-    this.ws.send(JSON.stringify({
-      type: "LOGIN",
-      code,
-    }));
+  public authenticate(authID: string): void {
+    this.send({
+      type: 'auth',
+      authID,
+    });
+    this.authID = authID;
   }
 
-  public requestHistory(page = 1): void {
-    console.log('Requesting History', page);
-    this.ws.send(JSON.stringify({
-      type: "GET_HISTORY",
+  public sendChatMessage(message: string): void {
+    this.send({
+      type: 'sendMessage',
+      message,
+      authID: this.authID,
+    })
+  }
+
+  public requestHistory(page: number): void {
+    this.send({
+      type: 'requestHistory',
       page,
       authID: this.authID,
-    }));
+    })
   }
 
-  public getPoints(dim: number): void {
-    this.ws.send(JSON.stringify({
-      type: "GET_POINTS",
+  public requestPoints(dim: number): void {
+    this.send({
+      type: 'requestPoints',
       dim,
       authID: this.authID,
-    }));
+    })
   }
 
-  public sendMessage(msg: string): void {
-    console.log('Sending message', msg);
-    this.ws.send(JSON.stringify({
-      type: "SEND",
-      message: msg,
-      authID: this.authID,
-    }))
-  }
-
-  private callListeners(type: MessageType, data: any) {
-    if (this.listeners[type]) {
-      this.listeners[type].forEach(l => l(data));
+  public on(messageType: MessageType, func: (data: any) => void): void {
+    if (!this.listeners[messageType]) {
+      this.listeners[messageType] = [];
     }
+
+    this.listeners[messageType].push(func);
   }
 
-  private handleMessage(ev: MessageEvent<any>) {
-    const message = JSON.parse(ev.data);
-    this.callListeners(message.type, message);
+  public once(messageType: MessageType, func: (data: any) => void): void {
+    if (!this.onceListeners[messageType]) {
+      this.onceListeners[messageType] = [];
+    }
+
+    this.onceListeners[messageType].push(func);
   }
 
-  private handleLogin(data: any) {
-    this.authID = data.authID;
-		localStorage.setItem('authID', this.authID);
+  private send(data: any) {
+    this.ws.send(JSON.stringify(data));
+  }
+
+  private callListeners(type, data: any) {
+    if (this.listeners[type]) {
+      this.listeners[type].forEach((f) => f(data));
+    }
+    if (this.onceListeners[type]) {
+      this.onceListeners[type].forEach((f) => f(data));
+      this.onceListeners[type] = [];
+    }
   }
 
 }

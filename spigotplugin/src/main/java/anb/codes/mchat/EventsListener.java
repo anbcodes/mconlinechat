@@ -6,6 +6,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonObject;
 
 import org.bukkit.event.EventHandler;
@@ -18,39 +23,42 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EventsListener implements Listener {
 
-  private MChatPlugin plugin;
-
-  public EventsListener(MChatPlugin plugin) {
-    this.plugin = plugin;
-  }
-
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
-    plugin.getLogger().info("Join " + event.getJoinMessage());
+    Logger.get().debug("Join " + event.getJoinMessage());
     try {
       InputStream inputStream = getClass().getClassLoader().getResourceAsStream("apikey.txt");
       String apikey = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
 
       if (apikey != null && !apikey.equals("")) {
-        plugin.server.sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey + "&PushTitle="
+        sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey + "&PushTitle="
             + event.getPlayer().getDisplayName() + "%20joined%20the%20server" + "&PushText=%20");
       }
     } catch (IOException e) {
-      plugin.getLogger().warning("Failed to read apikey file");
-      plugin.getLogger().warning(e.getMessage());
+      Logger.get().error("Failed to read apikey file", e);
     }
-    plugin.sendMessage(event.getJoinMessage());
+    MChatPlugin.get().broadcastMessage(event.getJoinMessage());
+  }
+
+  static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+
+  private void sendGetRequest(String reqUrl) throws IOException {
+    GenericUrl url = new GenericUrl(reqUrl);
+    HttpRequest request = HTTP_TRANSPORT.createRequestFactory().buildGetRequest(url);
+    HttpResponse response = request.execute();
+    response.disconnect();
   }
 
   @EventHandler
   public void onPlayerLeave(PlayerQuitEvent event) {
-    plugin.getLogger().info("Leave " + event.getQuitMessage());
-    plugin.sendMessage(event.getQuitMessage());
+    Logger.get().debug("Leave " + event.getQuitMessage());
+    MChatPlugin.get().broadcastMessage(event.getQuitMessage());
   }
 
   @EventHandler
   public void onPlayerDeath(PlayerDeathEvent event) {
-    plugin.sendMessage(event.getDeathMessage());
+    Logger.get().debug("Death " + event.getDeathMessage());
+    MChatPlugin.get().broadcastMessage(event.getDeathMessage());
   }
 
   @EventHandler
@@ -58,7 +66,8 @@ public class EventsListener implements Listener {
     String format = event.getFormat();
     String playerName = event.getPlayer().getDisplayName();
     String message = event.getMessage();
-    plugin.sendMessage(String.format(format, playerName, message));
+    MChatPlugin.get().broadcastMessage(String.format(format, playerName, message));
+    Logger.get().debug("Chat " + String.format(format, playerName, message));
   }
 
   @EventHandler
@@ -69,7 +78,7 @@ public class EventsListener implements Listener {
     obj.addProperty("x", event.getTo().getX());
     obj.addProperty("y", event.getTo().getY());
     obj.addProperty("z", event.getTo().getZ());
-    plugin.server.broadcastToAuthenticated(obj.toString());
+    MChatPlugin.get().server.broadcastToAuthenticated(obj.toString());
   }
 
 }

@@ -1,44 +1,50 @@
 package anb.codes.mchat;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import anb.codes.mchat.database.Database;
+import anb.codes.mchat.database.DatabaseQuery;
+
 public class MChatPlugin extends JavaPlugin {
-    public Users users;
     public Server server;
-    public History history;
-    public Database database;
+    public Users users = new Users();
+    public Connection db;
+
+    private static MChatPlugin instance;
+
+    static public MChatPlugin get() {
+        return MChatPlugin.instance;
+    }
 
     @Override
     public void onDisable() {
         try {
             server.stop();
         } catch (IOException | InterruptedException e) {
-            getLogger().warning(e.getStackTrace().toString());
+            Logger.get().error("Error stopping websocket server", e);
         }
         // Don't log disabling, Spigot does that for you automatically!
     }
 
     @Override
     public void onEnable() {
+        MChatPlugin.instance = this;
         getDataFolder().mkdir();
-        database = new Database(this);
-        history = new History("history.txt", this);
-        users = new Users("users.json", this);
-        server = new Server(this, 41663);
+        db = Database.init(this.getDataFolder() + File.separator + "plugin.db");
+        users.add("faketoken", "anbcodes");
+        server = new Server(41663);
         server.setReuseAddr(true);
         server.start();
-        this.getLogger().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());
-        // Don't log enabling, Spigot does that for you automatically!
-        getServer().getPluginManager().registerEvents(new EventsListener(this), this);
-        // Commands enabled with following method must have entries in plugin.yml
-        getCommand("shout").setExecutor(new ChatCommand(this));
-        getCommand("login").setExecutor(new ChatCommand(this));
+        Logger.get().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());
     }
 
-    public void sendMessage(String msg) {
-        server.broadcastMessageToAuthenticated(msg);
-        history.add(msg);
+    public void broadcastMessage(String msg) {
+        server.broadcastChatMessageToAuthenticated(msg);
+        this.getServer().broadcastMessage(msg);
     }
 }
