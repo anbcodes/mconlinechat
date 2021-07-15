@@ -10,16 +10,23 @@ main: ${mainClass}
 commands:
     shout:
         description: Shout a message
-        permission: mcbot.shout
+        permission: mchat.shout
         usage: /<command>
     login:
         description: Login to the chat website using a one time code
-        permission: mcbot.login
+        permission: mchat.login
         usage: /<command>
+    map:
+        description: Add or update a point on the map
+        permission: mchat.addpoint
+        usage: /<command> [name] [type] [x] [z] [dim]
 permissions:
-    mcbot.shout:
+    mchat.shout:
         description: can shout
         default: true
-    mcbot.login:
+    mchat.login:
         description: can login
+        default: true
+    mchat.map:
+        description: can add points to the map
         default: true

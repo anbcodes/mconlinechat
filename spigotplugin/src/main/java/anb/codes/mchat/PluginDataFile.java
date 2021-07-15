@@ -1,4 +1,4 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,9 +11,9 @@ import java.util.ArrayList;
 
 public class PluginDataFile {
   private File file;
-  private MCOnlineChatPlugin plugin;
+  private MChatPlugin plugin;
 
-  public PluginDataFile(MCOnlineChatPlugin plugin, String name) {
+  public PluginDataFile(MChatPlugin plugin, String name) {
     this.plugin = plugin;
     createFile(name);
   }

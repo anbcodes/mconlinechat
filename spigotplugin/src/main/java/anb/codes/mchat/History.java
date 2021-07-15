@@ -1,11 +1,11 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.util.ArrayList;
 
 public class History {
   private PluginDataFile file;
 
-  public History(String filename, MCOnlineChatPlugin plugin) {
+  public History(String filename, MChatPlugin plugin) {
     this.file = new PluginDataFile(plugin, filename);
   }
 

@@ -1,4 +1,4 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,18 +6,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonObject;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EventsListener implements Listener {
 
-  private MCOnlineChatPlugin plugin;
+  private MChatPlugin plugin;
 
-  public EventsListener(MCOnlineChatPlugin plugin) {
+  public EventsListener(MChatPlugin plugin) {
     this.plugin = plugin;
   }
 
@@ -56,6 +59,17 @@ public class EventsListener implements Listener {
     String playerName = event.getPlayer().getDisplayName();
     String message = event.getMessage();
     plugin.sendMessage(String.format(format, playerName, message));
+  }
+
+  @EventHandler
+  public void onPlayerMove(PlayerMoveEvent event) {
+    JsonObject obj = new JsonObject();
+    obj.addProperty("type", "PLAYER_MOVE");
+    obj.addProperty("username", event.getPlayer().getDisplayName());
+    obj.addProperty("x", event.getTo().getX());
+    obj.addProperty("y", event.getTo().getY());
+    obj.addProperty("z", event.getTo().getZ());
+    plugin.server.broadcastToAuthenticated(obj.toString());
   }
 
 }

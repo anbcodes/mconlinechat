@@ -1,13 +1,14 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.io.IOException;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class MCOnlineChatPlugin extends JavaPlugin {
+public class MChatPlugin extends JavaPlugin {
     public Users users;
     public Server server;
     public History history;
+    public Database database;
 
     @Override
     public void onDisable() {
@@ -22,9 +23,10 @@ public class MCOnlineChatPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         getDataFolder().mkdir();
+        database = new Database(this);
         history = new History("history.txt", this);
         users = new Users("users.json", this);
-        server = new Server(this, 31663);
+        server = new Server(this, 41663);
         server.setReuseAddr(true);
         server.start();
         this.getLogger().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());

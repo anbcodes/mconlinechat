@@ -1,12 +1,9 @@
 <script lang="typescript">
-	import { onDestroy, onMount, tick } from 'svelte';
-	import Server from '../util/Server';
+	import { onMount } from 'svelte';
+	import { context, server } from '../util/stores';
 	import type { MapPoint } from '../util/Server';
-
-	let connected = false;
-	let loggedIn = false;
-	let server: Server | null;
-	let stopped = false;
+	import { globalSetup } from '../util/util';
+	import { goto } from '$app/navigation';
 
 	const typeToImageURL = {
 		'explored endcity': '/icons/endcity-explored.png',
@@ -16,16 +13,11 @@
 	};
 
 	let typeToImage: { [type: string]: HTMLImageElement };
+	let onWeb = false;
 
 	onMount(() => {
-		let host = localStorage.getItem('host');
-		if (host !== null) {
-			connect(host);
-		}
-		let authIDStorage = localStorage.getItem('authID');
-		if (authIDStorage !== null) {
-			loggedIn = true;
-		}
+		globalSetup();
+		onWeb = true;
 
 		typeToImage = Object.fromEntries(
 			Object.entries(typeToImageURL).map(([key, value]) => {
@@ -36,35 +28,37 @@
 		);
 	});
 
-	onDestroy(() => {
-		if (server) {
-			server.ws.close();
+	$: {
+		if (!$context.connected && onWeb) {
+			goto('/connected');
 		}
-	});
+		if (!$context.authenticated && onWeb) {
+			goto('/login');
+		}
+	}
 
 	let points: MapPoint[] = [];
 	let currentDim = 'O';
 
-	const connect = (host: string) => {
-		localStorage.setItem('host', host);
-		server = new Server(host, '/map');
-		server.on('POINTS', async (data: MapPoint[]) => {
-			points = data;
-			console.log('points', data);
-		});
-		server.on('OPEN', () => {
-			connected = true;
-			console.log('Connection Opened');
-			setTimeout(() => {
-				server.getPoints();
-			}, 250);
-		});
-		server.on('CLOSE', () => {
-			connected = false;
-			server.ws.close();
-			console.log('Connection Closed');
-		});
-	};
+	$: {
+		if ($server.ws) {
+			$server.on('POINTS', (data) => {
+				points = data.points;
+			});
+		}
+	}
+
+	$: {
+		if (currentDim === 'O') {
+			$server.getPoints(0);
+		}
+		if (currentDim === 'N') {
+			$server.getPoints(1);
+		}
+		if (currentDim === 'E') {
+			$server.getPoints(2);
+		}
+	}
 
 	// map
 	let canvas: HTMLCanvasElement;
@@ -222,9 +216,7 @@
 			drawCursor(mouse.x, mouse.y);
 			drawLocations();
 		}
-		if (!stopped) {
-			requestAnimationFrame(update);
-		}
+		requestAnimationFrame(update);
 	}
 
 	function drawLocations() {
@@ -268,42 +260,32 @@
 </script>
 
 <div class="text-white p-5">
-	{#if !connected}
-		<div class="flex pt-5">
-			<div class="pr-5">Can't connect to server. Setup connection <a href="/">here</a></div>
-		</div>
-	{:else if !loggedIn}
-		<div>
-			You are not logged in. Click <a href="/">here</a> to login
-		</div>
-	{:else}
-		<div class="w-full flex justify-center">
-			<div class="w-2/3 flex-col flex">
-				<div class="w-full flex justify-around">
-					<div
-						class:border-b={currentDim === 'O'}
-						on:click={() => (currentDim = 'O')}
-						class="text-gray-400 border-gray-400"
-					>
-						Overworld
-					</div>
-					<div
-						class:border-b={currentDim === 'N'}
-						on:click={() => (currentDim = 'N')}
-						class="text-gray-400 border-gray-400"
-					>
-						Nether
-					</div>
-					<div
-						class:border-b={currentDim === 'E'}
-						on:click={() => (currentDim = 'E')}
-						class="text-gray-400 border-gray-400"
-					>
-						End
-					</div>
+	<div class="w-full flex justify-center">
+		<div class="w-2/3 flex-col flex">
+			<div class="w-full flex justify-around">
+				<div
+					class:border-b={currentDim === 'O'}
+					on:click={() => (currentDim = 'O')}
+					class="text-gray-400 border-gray-400"
+				>
+					Overworld
 				</div>
-				<canvas bind:this={canvas} class="w-full rounded m-5 p-5 h-[50rem] flex-col flex" />
+				<div
+					class:border-b={currentDim === 'N'}
+					on:click={() => (currentDim = 'N')}
+					class="text-gray-400 border-gray-400"
+				>
+					Nether
+				</div>
+				<div
+					class:border-b={currentDim === 'E'}
+					on:click={() => (currentDim = 'E')}
+					class="text-gray-400 border-gray-400"
+				>
+					End
+				</div>
 			</div>
+			<canvas bind:this={canvas} class="w-full rounded m-5 p-5 h-[50rem] flex-col flex" />
 		</div>
-	{/if}
+	</div>
 </div>

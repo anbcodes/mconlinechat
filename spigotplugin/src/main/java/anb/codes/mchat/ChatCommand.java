@@ -1,4 +1,4 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.util.Random;
 
@@ -7,10 +7,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 public class ChatCommand implements CommandExecutor {
-    MCOnlineChatPlugin plugin;
+    MChatPlugin plugin;
     static Random randNum = new Random();
 
-    public ChatCommand(MCOnlineChatPlugin plugin) {
+    public ChatCommand(MChatPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -32,6 +32,5 @@ public class ChatCommand implements CommandExecutor {
             return true;
         }
         return false;
-
     }
 }

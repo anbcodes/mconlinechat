@@ -1,4 +1,4 @@
-package anb.codes.mconlinechat;
+package anb.codes.mchat;
 
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
@@ -13,7 +13,7 @@ public class Users {
   private Map<String, String> loginCodes = new HashMap<>();
   private PluginDataFile usersFile;
 
-  Users(String filename, MCOnlineChatPlugin plugin) {
+  Users(String filename, MChatPlugin plugin) {
     usersFile = new PluginDataFile(plugin, "users.json");
     loadUsersFromFile();
   }
