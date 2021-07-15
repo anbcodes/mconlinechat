@@ -89,6 +89,7 @@ public class Server extends WebSocketServer {
     if (username != null) {
       JsonObject obj = new JsonObject();
       obj.addProperty("type", "authSuccess");
+      obj.addProperty("authID", message.get("authID").getAsString());
       Logger.get().debug("Sending response " + obj.toString());
       socket.send(obj.toString());
       authenticatedClients.add(socket);
@@ -119,13 +120,13 @@ public class Server extends WebSocketServer {
     String authID = MChatPlugin.get().loginCodes.login(code);
     if (authID != null) {
       JsonObject obj = new JsonObject();
-      obj.addProperty("type", "loginSuccess");
+      obj.addProperty("type", "authSuccess");
       obj.addProperty("authID", authID);
       Logger.get().debug("Sending response " + obj.toString());
       socket.send(obj.toString());
     } else {
       JsonObject obj = new JsonObject();
-      obj.addProperty("type", "loginFailed");
+      obj.addProperty("type", "authFailed");
       Logger.get().debug("Sending response " + obj.toString());
       socket.send(obj.toString());
     }

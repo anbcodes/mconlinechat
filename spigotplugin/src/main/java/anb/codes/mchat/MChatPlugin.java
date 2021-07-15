@@ -3,12 +3,10 @@ package anb.codes.mchat;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 import anb.codes.mchat.database.Database;
-import anb.codes.mchat.database.DatabaseQuery;
 
 public class MChatPlugin extends JavaPlugin {
     public Server server;
@@ -47,14 +45,13 @@ public class MChatPlugin extends JavaPlugin {
         Logger.get().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());
 
         getServer().getPluginManager().registerEvents(new EventsListener(), this);
+        getCommand("login").setExecutor(new CommandHandler());
     }
 
     public void broadcastMessage(ChatMessage msg) {
         server.broadcastChatMessageToAuthenticated(msg);
         if (msg.fromWebsite) {
             this.getServer().broadcastMessage("[" + msg.sender + "] " + msg.message);
-        } else if (msg.sender != null && !msg.sender.equals("")) {
-            this.getServer().broadcastMessage("<" + msg.sender + "> " + msg.message);
         }
         history.add(msg);
     }

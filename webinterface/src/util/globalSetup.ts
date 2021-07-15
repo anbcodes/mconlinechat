@@ -3,6 +3,12 @@ import { chatHistory, context } from "./stores";
 export default function globalSetup(): void {
   console.log("Setting up");
 
+  const host = localStorage.getItem('host');
+  const authID = localStorage.getItem('authID');
+
+  const searchParams = new URLSearchParams(location.search);
+  const loginCode = searchParams.get('code');
+
   if (!context.addedListeners) {
     console.log("Adding listeners");
     context.server.on("chatMessage", (data) => {
@@ -21,17 +27,21 @@ export default function globalSetup(): void {
     context.server.on('authSuccess', (data) => {
       context.authenticated = true;
       context.authID = data.authID;
-    });
-
-    context.server.on('loginSuccess', (data) => {
-      context.authenticated = true;
-      context.authID = data.authID;
+      if (loginCode) {
+        history.replaceState(null, null, '/');
+      }
+      localStorage.setItem('authID', data.authID);
+      console.log("set authid", data.authID, context.authenticated);
     });
 
     context.server.on('message', (data) => console.log(data));
 		context.server.on('open', () => {
       context.connected = true;
-			context.server.authenticate('faketoken');
+      if (loginCode) {
+        context.server.login(loginCode);
+      } else if (authID) {
+			  context.server.authenticate(authID);
+      }
 		});
 
     context.server.on('close', () => {
@@ -39,14 +49,16 @@ export default function globalSetup(): void {
     })
 
 		context.server.on('authSuccess', () => {
-			context.server.requestHistory(0, 0);
+      setTimeout(() => {
+			  context.server.requestHistory(0, 0);
+      }, 10);
 		});
 
     context.addedListeners = true;
   }
 
-  if (!context.connected) {
+  if (!context.connected && host) {
     console.log("Connecting");
-    context.server.connect('localhost', 41663, false);
+    context.server.connect(host, 41663, false);
   }
 }

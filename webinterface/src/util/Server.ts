@@ -1,4 +1,4 @@
-type MessageType = "chatMessage" | "loginSuccess" | "loginFailed" | "authSuccess" | "authFailed" | "historyData" | "open" | "close" | "error" | "message";
+type MessageType = "chatMessage" | "authSuccess" | "authFailed" | "historyData" | "open" | "close" | "error" | "message";
 
 type Listeners = {[type: string]: [symbol, (data: any) => void][]}
 
@@ -18,7 +18,7 @@ export default class Server {
   }
 
   constructor() {
-    this.on("authSuccess", () => this._authenticated = true);
+    this.on("authSuccess", (data) => {this._authenticated = true; this.authID = data.authID});
     this.on("authFailed", () => this.authID = null);
     this.on('message', (data) => {
       console.log(data.data);
@@ -34,16 +34,16 @@ export default class Server {
       this.ws = new WebSocket(`ws://${host}:${port}`);
     }
     this.ws.onmessage = (event) => this.callListeners('message', event);
-    this.ws.onopen = (event) => this.callListeners('open', event);
+    this.ws.onopen = (event) => setTimeout(() => this.callListeners('open', event), 1);
     this.ws.onclose = (event) => this.callListeners('close', event);
   }
 
   public authenticate(authID: string): void {
+    console.log("authenticating", authID);
     this.send({
       type: 'auth',
       authID,
     });
-    this.authID = authID;
   }
 
   public sendChatMessage(message: string): void {
@@ -68,6 +68,13 @@ export default class Server {
       type: 'requestPoints',
       dim,
       authID: this.authID,
+    })
+  }
+
+  public login(code: string): void {
+    this.send({
+      type: 'login',
+      code,
     })
   }
 

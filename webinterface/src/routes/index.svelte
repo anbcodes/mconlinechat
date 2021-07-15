@@ -28,6 +28,8 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { chatHistory, context } from '../util/stores';
 	import type { ChatHistoryItem } from '../util/stores';
+	import Connect from '../components/Connect.svelte';
+	import Login from '../components/Login.svelte';
 
 	let historyContainer: HTMLDivElement;
 	let historyItems: HTMLDivElement[] = [];
@@ -35,6 +37,7 @@
 	let messageInput = '';
 
 	let listeners: symbol[] = [];
+	let onWeb = false;
 
 	const onScroll = () => {
 		if (
@@ -49,27 +52,35 @@
 
 	onMount(() => {
 		globalSetup();
-
-		listeners.push(
-			$context.server.on('chatMessage', async () => {
-				await tick();
-				historyItems.slice(-1)[0].scrollIntoView();
-			})
-		);
-
-		listeners.push(
-			$context.server.on('historyData', async ({ page, offset }) => {
-				await tick();
-				if (page === 0) {
-					historyItems.slice(-1)[0].scrollIntoView();
-				} else if (historyItems.slice(100)[0]) {
-					historyItems.slice(100)[0].scrollIntoView();
-				}
-			})
-		);
-
-		historyContainer.addEventListener('scroll', onScroll);
+		onWeb = true;
 	});
+
+	$: {
+		if (onWeb && $context.authenticated && $context.connected) {
+			tick().then(() => {
+				console.log($context.authenticated);
+				listeners.push(
+					$context.server.on('chatMessage', async () => {
+						await tick();
+						historyItems.slice(-1)[0].scrollIntoView();
+					})
+				);
+
+				listeners.push(
+					$context.server.on('historyData', async ({ page, offset }) => {
+						await tick();
+						if (page === 0) {
+							historyItems.slice(-1)[0].scrollIntoView();
+						} else if (historyItems.slice(100)[0]) {
+							historyItems.slice(100)[0].scrollIntoView();
+						}
+					})
+				);
+
+				historyContainer.addEventListener('scroll', onScroll);
+			});
+		}
+	}
 
 	onDestroy(() => {
 		listeners.forEach((l) => {
@@ -125,40 +136,46 @@
 	};
 </script>
 
-<div class="w-full flex justify-center">
-	<div class="w-2/3 bg-gray-800 rounded m-5 p-5 h-[50rem] flex-col flex">
-		<div bind:this={historyContainer} class="flex-grow overflow-scroll p-1">
-			{#each [...$chatHistory].reverse() as page, i}
-				{#each [...page].reverse() as line, i2}
-					<div class="p-1">
-						<div bind:this={historyItems[i * 100 + i2]}>
-							{formatMessage(line)}
+{#if !$context.connected}
+	<Connect />
+{:else if !$context.authenticated}
+	<Login />
+{:else}
+	<div class="w-full flex justify-center">
+		<div class="w-2/3 bg-gray-800 rounded m-5 p-5 h-[50rem] flex-col flex">
+			<div bind:this={historyContainer} class="flex-grow overflow-scroll p-1">
+				{#each [...$chatHistory].reverse() as page, i}
+					{#each [...page].reverse() as line, i2}
+						<div class="p-1">
+							<div bind:this={historyItems[i * 100 + i2]}>
+								{formatMessage(line)}
+							</div>
+							<div class="text-gray-400 ml-5">
+								- {timeFromNow(line.sent)}
+							</div>
 						</div>
-						<div class="text-gray-400 ml-5">
-							- {timeFromNow(line.sent)}
-						</div>
-					</div>
+					{/each}
 				{/each}
-			{/each}
-		</div>
-		<div class="flex mt-2">
-			<input
-				class="bg-gray-700 rounded p-1 flex-grow"
-				bind:value={messageInput}
-				on:keydown={(e) => {
-					if (e.key === 'Enter') {
+			</div>
+			<div class="flex mt-2">
+				<input
+					class="bg-gray-700 rounded p-1 flex-grow"
+					bind:value={messageInput}
+					on:keydown={(e) => {
+						if (e.key === 'Enter') {
+							send(messageInput);
+							messageInput = '';
+						}
+					}}
+				/>
+				<button
+					class="mx-4 p-1 px-2 rounded bg-gray-700 hover:bg-gray-800"
+					on:click={() => {
 						send(messageInput);
 						messageInput = '';
-					}
-				}}
-			/>
-			<button
-				class="mx-4 p-1 px-2 rounded bg-gray-700 hover:bg-gray-800"
-				on:click={() => {
-					send(messageInput);
-					messageInput = '';
-				}}>Send</button
-			>
+					}}>Send</button
+				>
+			</div>
 		</div>
 	</div>
-</div>
+{/if}
