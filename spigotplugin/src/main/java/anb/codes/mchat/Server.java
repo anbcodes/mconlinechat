@@ -64,6 +64,8 @@ public class Server extends WebSocketServer {
       handleSendMessage(message);
     } else if (messageType.equals("login")) {
       handleLogin(socket, message);
+    } else if (messageType.equals("requestHistory")) {
+      handleRequestHistory(socket, message);
     }
   }
 
@@ -129,6 +131,24 @@ public class Server extends WebSocketServer {
     }
   }
 
+  private void handleRequestHistory(WebSocket socket, JsonObject message) {
+    String username = getUsername(message);
+    if (message.get("page") == null || message.get("offset") == null || username == null) {
+      return;
+    }
+
+    int page = message.get("page").getAsInt();
+    int offset = message.get("offset").getAsInt();
+    ChatMessage[] history = MChatPlugin.get().history.getPage(page, offset);
+
+    JsonObject obj = new JsonObject();
+    obj.addProperty("type", "historyData");
+    obj.addProperty("page", page);
+    obj.addProperty("offset", offset);
+    obj.add("items", gson.toJsonTree(history));
+    socket.send(obj.toString());
+  }
+
   @Override
   public void onClose(WebSocket socket, int value, String s, boolean bool) {
     Logger.get().debug("Socket closed");
@@ -155,7 +175,7 @@ public class Server extends WebSocketServer {
       if (authenticatedClients.contains(client)) {
         JsonObject obj = new JsonObject();
         obj.addProperty("type", "chatMessage");
-        obj.addProperty("message", gson.toJson(message));
+        obj.add("message", gson.toJsonTree(message));
         client.send(obj.toString());
       }
     }

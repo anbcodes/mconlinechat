@@ -8,6 +8,10 @@ public class ChatMessage {
   public String sender;
   public boolean fromWebsite;
 
+  public ChatMessage() {
+
+  }
+
   public ChatMessage(String message, String sender, long sent) {
     this.message = message;
     this.sender = sender;

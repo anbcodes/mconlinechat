@@ -1,9 +1,11 @@
-type MessageType = "chatMessage" | "authSuccess" | "authFailed" | "open" | "close" | "error" | "message";
+type MessageType = "chatMessage" | "loginSuccess" | "loginFailed" | "authSuccess" | "authFailed" | "historyData" | "open" | "close" | "error" | "message";
+
+type Listeners = {[type: string]: [symbol, (data: any) => void][]}
 
 export default class Server {
   private ws: WebSocket | null;
-  private listeners: {[type: string]: ((data: any) => void)[]} = {};
-  private onceListeners: {[type: string]: ((data: any) => void)[]} = {};
+  private listeners: Listeners = {};
+  private onceListeners: Listeners = {};
   private _authenticated = false;
   private authID: string;
 
@@ -52,10 +54,11 @@ export default class Server {
     })
   }
 
-  public requestHistory(page: number): void {
+  public requestHistory(page: number, offset: number): void {
     this.send({
       type: 'requestHistory',
       page,
+      offset,
       authID: this.authID,
     })
   }
@@ -68,20 +71,37 @@ export default class Server {
     })
   }
 
-  public on(messageType: MessageType, func: (data: any) => void): void {
+  public on(messageType: MessageType, func: (data: any) => void): symbol {
     if (!this.listeners[messageType]) {
       this.listeners[messageType] = [];
     }
-
-    this.listeners[messageType].push(func);
+    const id = Symbol();
+    this.listeners[messageType].push([id, func]);
+    return id;
   }
 
-  public once(messageType: MessageType, func: (data: any) => void): void {
+  public remove(id: symbol): void {
+    Object.keys(this.listeners).forEach((key) => {
+      if (this.listeners[key].map(v => v[0]).includes(id)) {
+        this.listeners[key] = this.listeners[key].filter(v => v[0] !== id);
+      }
+    });
+
+    Object.keys(this.onceListeners).forEach((key) => {
+      if (this.onceListeners[key].map(v => v[0]).includes(id)) {
+        this.onceListeners[key] = this.onceListeners[key].filter(v => v[0] !== id);
+      }
+    })
+  }
+
+  public once(messageType: MessageType, func: (data: any) => void): symbol {
     if (!this.onceListeners[messageType]) {
       this.onceListeners[messageType] = [];
     }
 
-    this.onceListeners[messageType].push(func);
+    const id = Symbol();
+    this.onceListeners[messageType].push([id, func]);
+    return id;
   }
 
   private send(data: any) {
@@ -90,10 +110,10 @@ export default class Server {
 
   private callListeners(type, data: any) {
     if (this.listeners[type]) {
-      this.listeners[type].forEach((f) => f(data));
+      this.listeners[type].forEach((v) => v[1](data));
     }
     if (this.onceListeners[type]) {
-      this.onceListeners[type].forEach((f) => f(data));
+      Object.values(this.onceListeners[type]).forEach((v) => v[1](data));
       this.onceListeners[type] = [];
     }
   }

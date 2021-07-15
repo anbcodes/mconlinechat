@@ -12,8 +12,9 @@ import anb.codes.mchat.database.DatabaseQuery;
 
 public class MChatPlugin extends JavaPlugin {
     public Server server;
-    public Users users = new Users();
+    public Users users;
     public LoginCodes loginCodes = new LoginCodes();
+    public History history;
     public Connection db;
 
     private static MChatPlugin instance;
@@ -37,6 +38,8 @@ public class MChatPlugin extends JavaPlugin {
         MChatPlugin.instance = this;
         getDataFolder().mkdir();
         db = Database.init(this.getDataFolder() + File.separator + "plugin.db");
+        history = new History(db);
+        users = new Users(db);
         users.add("faketoken", "anbcodes");
         server = new Server(41663);
         server.setReuseAddr(true);
@@ -53,5 +56,6 @@ public class MChatPlugin extends JavaPlugin {
         } else if (msg.sender != null && !msg.sender.equals("")) {
             this.getServer().broadcastMessage("<" + msg.sender + "> " + msg.message);
         }
+        history.add(msg);
     }
 }
