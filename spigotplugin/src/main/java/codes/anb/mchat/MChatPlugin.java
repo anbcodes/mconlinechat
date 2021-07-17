@@ -46,7 +46,7 @@ public class MChatPlugin extends JavaPlugin {
         pointTypes = new PointTypes(db);
         users = new Users(db);
         map = new WorldMap(db);
-        server = new Server(41663);
+        server = new Server(31663);
         server.setReuseAddr(true);
         server.start();
         Logger.get().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());

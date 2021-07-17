@@ -2,7 +2,7 @@ package codes.anb.mchat;
 
 public class Logger {
   private static Logger instance;
-  public int level = 0;
+  public int level = 10;
 
   public static Logger get() {
     if (Logger.instance == null) {
