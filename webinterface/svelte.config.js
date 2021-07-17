@@ -12,7 +12,6 @@ const config = {
 	kit: {
 		target: 'body',
 		adapter: adapter()
-
 	}
 };
 

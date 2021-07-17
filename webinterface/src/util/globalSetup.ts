@@ -77,6 +77,6 @@ export default function globalSetup(): void {
 
   if (!connected.get() && host) {
     console.log("Connecting");
-    server.get().connect(host, 41663, false);
+    server.get().connect(host);
   }
 }
