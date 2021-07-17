@@ -66,6 +66,8 @@ public class Server extends WebSocketServer {
       handleLogin(socket, message);
     } else if (messageType.equals("requestHistory")) {
       handleRequestHistory(socket, message);
+    } else if (messageType.equals("requestPoints")) {
+      handleRequestPoints(socket, message);
     }
   }
 
@@ -147,6 +149,22 @@ public class Server extends WebSocketServer {
     obj.addProperty("page", page);
     obj.addProperty("offset", offset);
     obj.add("items", gson.toJsonTree(history));
+    socket.send(obj.toString());
+  }
+
+  private void handleRequestPoints(WebSocket socket, JsonObject message) {
+    String username = getUsername(message);
+    if (message.get("dimension") == null || username == null) {
+      return;
+    }
+
+    int dimension = message.get("dimension").getAsInt();
+    Point[] points = MChatPlugin.get().map.getPoints(dimension);
+
+    JsonObject obj = new JsonObject();
+    obj.addProperty("type", "pointsData");
+    obj.addProperty("dimension", dimension);
+    obj.add("points", gson.toJsonTree(points));
     socket.send(obj.toString());
   }
 

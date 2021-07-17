@@ -13,6 +13,7 @@ public class MChatPlugin extends JavaPlugin {
     public Users users;
     public LoginCodes loginCodes = new LoginCodes();
     public History history;
+    public WorldMap map;
     public Connection db;
 
     private static MChatPlugin instance;
@@ -38,6 +39,7 @@ public class MChatPlugin extends JavaPlugin {
         db = Database.init(this.getDataFolder() + File.separator + "plugin.db");
         history = new History(db);
         users = new Users(db);
+        map = new WorldMap(db);
         users.add("faketoken", "anbcodes");
         server = new Server(41663);
         server.setReuseAddr(true);

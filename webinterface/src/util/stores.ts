@@ -35,6 +35,17 @@ function createChatHistory() {
 export const chatHistory = createChatHistory();
 
 
+export interface WorldPoint {
+  x: number,
+  z: number,
+  creator: string,
+  created: number,
+  id: number,
+  name: string,
+  type: string,
+  dimension: number,
+}
+
 function createContext() {
 	const props = {
 		connected: false,
@@ -45,6 +56,8 @@ function createContext() {
     server: new Server(),
     addedListeners: false,
     authID: null,
+    mapDimension: 0,
+    mapPoints: [] as WorldPoint[],
 	}
 
 	const { subscribe, set, update } = writable(props);
