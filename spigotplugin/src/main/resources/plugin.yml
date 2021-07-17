@@ -8,18 +8,33 @@ api-version: 1.17
 main: ${mainClass}
 
 commands:
-    shout:
-        description: Shout a message
-        permission: mcbot.shout
-        usage: /<command>
     login:
         description: Login to the chat website using a one time code
-        permission: mcbot.login
+        permission: mchat.login
         usage: /<command>
+    map:
+        description: Add a point to the map
+        permission: mchat.map
+        usage: /<command> [type] [name] [x] [z] [dim]
+    hide:
+        description: Hide yourself on the map
+        permission: mchat.mapvis
+        usage: /<command>
+    show:
+        description: Show yourself on the map
+        permission: mchat.mapvis
+        usage: /<command>
+    addmaptype:
+        description: Add a map type
+        permission: mchat.map
+        usage: /<command> [type] [name] [x] [z] [dim]
 permissions:
-    mcbot.shout:
-        description: can shout
-        default: true
-    mcbot.login:
+    mchat.login:
         description: can login
+        default: true
+    mchat.map:
+        description: can add points to the map
+        default: true
+    mchat.mapvis:
+        description: can add points to the map
         default: true
