@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,12 +77,16 @@ public class EventsListener implements Listener {
   @EventHandler
   public void onPlayerMove(PlayerMoveEvent event) {
     JsonObject obj = new JsonObject();
-    obj.addProperty("type", "PLAYER_MOVE");
-    obj.addProperty("username", event.getPlayer().getDisplayName());
-    obj.addProperty("x", event.getTo().getX());
-    obj.addProperty("y", event.getTo().getY());
-    obj.addProperty("z", event.getTo().getZ());
-    MChatPlugin.get().server.broadcastToAuthenticated(obj.toString());
+    if (MChatPlugin.get().hiddenPlayers.indexOf(event.getPlayer()) == -1) {
+      obj.addProperty("type", "playerMove");
+      obj.addProperty("username", event.getPlayer().getDisplayName());
+      obj.addProperty("x", event.getTo().getX());
+      obj.addProperty("y", event.getTo().getY());
+      obj.addProperty("z", event.getTo().getZ());
+      obj.addProperty("dimension", Utils.envToInt(event.getTo().getWorld().getEnvironment()));
+      MChatPlugin.get().server.broadcastToAuthenticated(obj.toString());
+    }
+
   }
 
 }

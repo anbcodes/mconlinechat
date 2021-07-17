@@ -42,50 +42,38 @@ export interface WorldPoint {
   created: number,
   id: number,
   name: string,
-  type: string,
+  type: number,
   dimension: number,
 }
 
-function createContext() {
-	const props = {
-		connected: false,
-		authenticated: false,
-		requestedHistory: false,
-		reachedEndOfHistory: false,
-		historyOffset: 0,
-    server: new Server(),
-    addedListeners: false,
-    authID: null,
-    mapDimension: 0,
-    mapPoints: [] as WorldPoint[],
-	}
-
-	const { subscribe, set, update } = writable(props);
-	let currentObj = {};
-	subscribe(v => {
-		currentObj = v;
-	})
-
-	const obj = {
-		subscribe,
-    set,
-	}
-
-	Object.entries(props).forEach(([key]) => {
-		Object.defineProperty(obj, key, {
-			get() {
-				return currentObj[key]
-			},
-			set(v) {
-				update((n) => {
-					n[key] = v;
-					return n;
-				})
-			}
-		});
-	});
-
-	return obj as (typeof props) & (typeof obj);
+export interface WorldType {
+	id: number,
+	name: string,
+	image: string,
 }
 
-export const context = createContext();
+function createStore<T>(value: T) {
+	const {subscribe, set, update} = writable(value);
+	let curValue: T;
+	subscribe((v) => curValue = v);
+
+	return {
+		subscribe,
+		set,
+		update,
+		get: () => curValue,
+	};
+}
+
+export const connected = createStore(false);
+export const authenticated = createStore(false);
+export const requestedHistory = createStore(false);
+export const reachedEndOfHistory = createStore(false);
+export const historyOffset = createStore(0);
+export const server = createStore(new Server());
+export const addedListeners = createStore(false);
+export const authID = createStore(null as string);
+export const mapDimension = createStore(0);
+export const mapPoints = createStore([[], [], []] as WorldPoint[][]);
+export const mapTypes = createStore([] as WorldType[]);
+export const players = createStore({} as {[username: string]: {x: number, y: number, z: number, dimension: number}});

@@ -1,11 +1,11 @@
-package anb.codes.mchat.database;
+package codes.anb.mchat.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import anb.codes.mchat.MChatPlugin;
+import codes.anb.mchat.MChatPlugin;
 
 public class DatabaseQuery {
   private Connection db;

@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import anb.codes.mchat.database.DatabaseQuery;
+import codes.anb.mchat.database.DatabaseQuery;
 
 public class WorldMap {
   private Connection con;
@@ -18,14 +18,14 @@ public class WorldMap {
       Statement statement = con.createStatement();
       statement.executeUpdate("""
           CREATE TABLE IF NOT EXISTS Points(
-            id        INT PRIMARY KEY AUTOINCREMENT
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
             name      TEXT,
             creator   TEXT,
             type      TEXT,
             created   INTEGER,
             x         INT,
             z         INT,
-            dimension INT,
+            dimension INT
           )""");
     } catch (SQLException e) {
       Logger.get().error("Failed to create points table", e);
@@ -36,8 +36,8 @@ public class WorldMap {
     try {
       new DatabaseQuery(con,
           "INSERT INTO Points (name, creator, type, created, x, z, dimension) VALUES (?, ?, ?, ?, ?, ?, ?)")
-              .setString(point.name).setString(point.creator).setString(point.type).setInt(point.created)
-              .setInt(point.x).setInt(point.z).setInt(point.dim).executeUpdate();
+              .setString(point.name).setString(point.creator).setInt(point.type).setInt(point.created).setInt(point.x)
+              .setInt(point.z).setInt(point.dimension).executeUpdate();
     } catch (SQLException e) {
       Logger.get().error("Failed to add point " + point.name, e);
     }
@@ -84,26 +84,27 @@ public class WorldMap {
     }
   }
 
-  public Point[] getPoints(int dim) {
+  public Point[] getPoints(int dimension) {
     try {
-      ResultSet results = new DatabaseQuery(con, "SELECT * FROM Points WHERE dimension = ?").setInt(dim).executeQuery();
+      ResultSet results = new DatabaseQuery(con, "SELECT * FROM Points WHERE dimension = ?").setInt(dimension)
+          .executeQuery();
       List<Point> points = new ArrayList<>();
       while (results.next()) {
         Point p = new Point();
         p.id = results.getInt(1);
         p.name = results.getString(2);
         p.creator = results.getString(3);
-        p.type = results.getString(4);
+        p.type = results.getInt(4);
         p.created = results.getInt(5);
         p.x = results.getInt(6);
         p.z = results.getInt(7);
-        p.dim = results.getInt(8);
+        p.dimension = results.getInt(8);
         points.add(p);
       }
       return points.toArray(new Point[0]);
 
     } catch (SQLException e) {
-      Logger.get().error("Failed get points in dimension " + dim, e);
+      Logger.get().error("Failed get points in dimension " + dimension, e);
       return null;
     }
   }
@@ -116,11 +117,11 @@ public class WorldMap {
         p.id = results.getInt(1);
         p.name = results.getString(2);
         p.creator = results.getString(3);
-        p.type = results.getString(4);
+        p.type = results.getInt(4);
         p.created = results.getInt(5);
         p.x = results.getInt(6);
         p.z = results.getInt(7);
-        p.dim = results.getInt(8);
+        p.dimension = results.getInt(8);
         return p;
       } else {
         return null;

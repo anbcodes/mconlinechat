@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import anb.codes.mchat.database.DatabaseQuery;
+import codes.anb.mchat.database.DatabaseQuery;
 
 public class History {
   private Connection con;
@@ -32,8 +32,8 @@ public class History {
     Logger.get().debug("Getting page " + page + "With offset " + offset);
     try {
       List<ChatMessage> history = new ArrayList<>();
-      ResultSet results = new DatabaseQuery(con, "SELECT * FROM History ORDER BY sent DESC LIMIT ?")
-          .setInt((page + 1) * 100 + offset).executeQuery();
+      ResultSet results = new DatabaseQuery(con, "SELECT * FROM History ORDER BY sent DESC LIMIT ? OFFSET ?")
+          .setInt(100).setInt(page * 100 + offset).executeQuery();
       while (results.next()) {
         ChatMessage msg = new ChatMessage();
         msg.fromWebsite = results.getInt("fromWebsite") == 1;
@@ -43,10 +43,7 @@ public class History {
         history.add(msg);
       }
 
-      int subStart = Math.min((page) * 100 + offset, history.size());
-      int subEnd = Math.min((page + 1) * 100 + offset, history.size());
-
-      return history.subList(subStart, subEnd).toArray(new ChatMessage[0]);
+      return history.toArray(new ChatMessage[0]);
     } catch (SQLException e) {
       Logger.get().error("Failed to get history (page " + page + ")", e);
       return null;

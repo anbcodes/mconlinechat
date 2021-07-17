@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 
-import anb.codes.mchat.database.DatabaseQuery;
+import codes.anb.mchat.database.DatabaseQuery;
 
 public class Users {
   private Connection con;

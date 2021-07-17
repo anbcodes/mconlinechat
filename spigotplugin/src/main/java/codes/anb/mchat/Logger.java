@@ -1,7 +1,8 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 public class Logger {
   private static Logger instance;
+  public int level = 0;
 
   public static Logger get() {
     if (Logger.instance == null) {
@@ -13,8 +14,6 @@ public class Logger {
 
   private Logger() {
   }
-
-  public int level = 0;
 
   public void debug(String message) {
     log(0, "Debug: " + message);

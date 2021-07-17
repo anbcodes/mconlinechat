@@ -1,4 +1,4 @@
-type MessageType = "chatMessage" | "authSuccess" | "authFailed" | "historyData" | "open" | "close" | "error" | "message";
+type MessageType = "chatMessage" | "playerMove" | "authSuccess" | "authFailed" | "historyData" | "pointsData" | "typesData" | "open" | "close" | "error" | "message";
 
 type Listeners = {[type: string]: [symbol, (data: any) => void][]}
 
@@ -63,10 +63,17 @@ export default class Server {
     })
   }
 
-  public requestPoints(dim: number): void {
+  public requestPoints(dimension: number): void {
     this.send({
       type: 'requestPoints',
-      dim,
+      dimension,
+      authID: this.authID,
+    })
+  }
+
+  public requestTypes(): void {
+    this.send({
+      type: 'requestTypes',
       authID: this.authID,
     })
   }

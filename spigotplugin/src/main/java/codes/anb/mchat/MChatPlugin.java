@@ -1,12 +1,15 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import anb.codes.mchat.database.Database;
+import codes.anb.mchat.database.Database;
 
 public class MChatPlugin extends JavaPlugin {
     public Server server;
@@ -14,6 +17,8 @@ public class MChatPlugin extends JavaPlugin {
     public LoginCodes loginCodes = new LoginCodes();
     public History history;
     public WorldMap map;
+    public PointTypes pointTypes;
+    public List<Player> hiddenPlayers = new ArrayList<>();
     public Connection db;
 
     private static MChatPlugin instance;
@@ -38,16 +43,21 @@ public class MChatPlugin extends JavaPlugin {
         getDataFolder().mkdir();
         db = Database.init(this.getDataFolder() + File.separator + "plugin.db");
         history = new History(db);
+        pointTypes = new PointTypes(db);
         users = new Users(db);
         map = new WorldMap(db);
-        users.add("faketoken", "anbcodes");
         server = new Server(41663);
         server.setReuseAddr(true);
         server.start();
         Logger.get().info("Server starting on " + server.getAddress().getHostName() + ":" + server.getPort());
 
         getServer().getPluginManager().registerEvents(new EventsListener(), this);
-        getCommand("login").setExecutor(new CommandHandler());
+        CommandHandler handler = new CommandHandler();
+        getCommand("login").setExecutor(handler);
+        getCommand("map").setExecutor(handler);
+        getCommand("addmaptype").setExecutor(handler);
+        getCommand("hide").setExecutor(handler);
+        getCommand("show").setExecutor(handler);
     }
 
     public void broadcastMessage(ChatMessage msg) {

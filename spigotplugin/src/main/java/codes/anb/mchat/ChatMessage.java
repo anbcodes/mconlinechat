@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.util.Date;
 

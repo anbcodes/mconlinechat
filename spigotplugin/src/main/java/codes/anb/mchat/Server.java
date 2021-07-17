@@ -1,4 +1,4 @@
-package anb.codes.mchat;
+package codes.anb.mchat;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -58,16 +58,25 @@ public class Server extends WebSocketServer {
     String messageType = getMessageType(message);
     Logger.get().debug("Message type " + messageType);
 
-    if (messageType.equals("auth")) {
-      handleAuth(socket, message);
-    } else if (messageType.equals("sendMessage")) {
-      handleSendMessage(message);
-    } else if (messageType.equals("login")) {
-      handleLogin(socket, message);
-    } else if (messageType.equals("requestHistory")) {
-      handleRequestHistory(socket, message);
-    } else if (messageType.equals("requestPoints")) {
-      handleRequestPoints(socket, message);
+    switch (messageType) {
+      case "auth":
+        handleAuth(socket, message);
+        break;
+      case "sendMessage":
+        handleSendMessage(message);
+        break;
+      case "login":
+        handleLogin(socket, message);
+        break;
+      case "requestHistory":
+        handleRequestHistory(socket, message);
+        break;
+      case "requestPoints":
+        handleRequestPoints(socket, message);
+        break;
+      case "requestTypes":
+        handleRequestTypes(socket, message);
+        break;
     }
   }
 
@@ -165,6 +174,22 @@ public class Server extends WebSocketServer {
     obj.addProperty("type", "pointsData");
     obj.addProperty("dimension", dimension);
     obj.add("points", gson.toJsonTree(points));
+    Logger.get().debug("Sending points " + obj.toString());
+    socket.send(obj.toString());
+  }
+
+  private void handleRequestTypes(WebSocket socket, JsonObject message) {
+    String username = getUsername(message);
+    if (username == null) {
+      return;
+    }
+
+    List<PointType> types = MChatPlugin.get().pointTypes.get();
+
+    JsonObject obj = new JsonObject();
+    obj.addProperty("type", "typesData");
+    obj.add("types", gson.toJsonTree(types));
+    Logger.get().debug("Sending types " + obj.toString());
     socket.send(obj.toString());
   }
 

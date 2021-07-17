@@ -1,4 +1,4 @@
-import { chatHistory, context } from "./stores";
+import { addedListeners, authenticated, chatHistory, historyOffset, mapPoints, reachedEndOfHistory, requestedHistory, server, authID as contextAuthID, connected, mapTypes, players } from "./stores";
 
 export default function globalSetup(): void {
   console.log("Setting up");
@@ -9,56 +9,74 @@ export default function globalSetup(): void {
   const searchParams = new URLSearchParams(location.search);
   const loginCode = searchParams.get('code');
 
-  if (!context.addedListeners) {
+  if (!addedListeners.get()) {
     console.log("Adding listeners");
-    context.server.on("chatMessage", (data) => {
+    server.get().on("chatMessage", (data) => {
       chatHistory.addMessage(data.message);
-      context.historyOffset += 1;
+      historyOffset.update(n => n + 1);
     });
 
-    context.server.on('historyData', (data) => {
-      context.requestedHistory = false;
+    server.get().on('historyData', (data) => {
+      requestedHistory.set(false);
       if (data.items.length == 0) {
-        context.reachedEndOfHistory = true;
+        reachedEndOfHistory.set(true);
       }
       chatHistory.setPage(data.page, data.items);
     });
 
-    context.server.on('authSuccess', (data) => {
-      context.authenticated = true;
-      context.authID = data.authID;
+    server.get().on('pointsData', (data) => {
+      mapPoints.update((v) => {
+        v[data.dimension] = data.points;
+        return v;
+      });
+    });
+
+    server.get().on('typesData', (data) => {
+      mapTypes.set(data.types);
+    });
+
+    server.get().on('playerMove', (data) => {
+      players.update(p => {
+        p[data.username] = {x: data.x, y: data.y, z: data.z, dimension: data.dimension};
+        return p;
+      });
+    });
+
+    server.get().on('authSuccess', (data) => {
+      authenticated.set(true);
+      contextAuthID.set(data.authID);
       if (loginCode) {
         history.replaceState(null, null, '/');
       }
       localStorage.setItem('authID', data.authID);
-      console.log("set authid", data.authID, context.authenticated);
+      console.log("set authid", data.authID, authenticated.get());
     });
 
-    context.server.on('message', (data) => console.log(data));
-		context.server.on('open', () => {
-      context.connected = true;
+    server.get().on('message', (data) => console.log(data));
+		server.get().on('open', () => {
+      connected.set(true);
       if (loginCode) {
-        context.server.login(loginCode);
+        server.get().login(loginCode);
       } else if (authID) {
-			  context.server.authenticate(authID);
+			  server.get().authenticate(authID);
       }
 		});
 
-    context.server.on('close', () => {
-      context.connected = false;
+    server.get().on('close', () => {
+      connected.set(false);
     })
 
-		context.server.on('authSuccess', () => {
+		server.get().on('authSuccess', () => {
       setTimeout(() => {
-			  context.server.requestHistory(0, 0);
+			  server.get().requestHistory(0, 0);
       }, 10);
 		});
 
-    context.addedListeners = true;
+    addedListeners.set(true);
   }
 
-  if (!context.connected && host) {
+  if (!connected.get() && host) {
     console.log("Connecting");
-    context.server.connect(host, 41663, false);
+    server.get().connect(host, 41663, false);
   }
 }

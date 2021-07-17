@@ -37,7 +37,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <properties>
         <!--  Author and MainClass are used in plugin.yml -->
         <author>Anbcodes</author>
-        <mainClass>anb.codes.mchat.MChatPlugin</mainClass>
+        <mainClass>codes.anb.mchat.MChatPlugin</mainClass>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

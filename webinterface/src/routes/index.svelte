@@ -1,32 +1,16 @@
-<!-- <script lang="ts">
-	import { onMount } from 'svelte';
-
-	import Server from '../util/Server';
-
-	let server: Server;
-
-	onMount(() => {
-		server = new Server();
-		server.connect('localhost', 41663, false);
-		server.on('message', (data) => console.log(data));
-		server.once('open', () => {
-			server.authenticate('faketoken');
-		});
-
-		server.once('authSuccess', () => {
-			server.requestHistory(0, 0);
-		});
-
-		server.on('historyData', (data) => {
-			console.log('GOT HISTORY', data.page, data.offset, data.items);
-		});
-	});
-</script> -->
 <script lang="ts">
 	import globalSetup from '../util/globalSetup';
 
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { chatHistory, context } from '../util/stores';
+	import {
+		authenticated,
+		chatHistory,
+		connected,
+		historyOffset,
+		reachedEndOfHistory,
+		requestedHistory,
+		server
+	} from '../util/stores';
 	import type { ChatHistoryItem } from '../util/stores';
 	import Connect from '../components/Connect.svelte';
 	import Login from '../components/Login.svelte';
@@ -40,13 +24,9 @@
 	let onWeb = false;
 
 	const onScroll = () => {
-		if (
-			historyContainer.scrollTop < 200 &&
-			!$context.requestedHistory &&
-			!$context.reachedEndOfHistory
-		) {
-			$context.requestedHistory = true;
-			$context.server.requestHistory($chatHistory.length, $context.historyOffset);
+		if (historyContainer.scrollTop < 200 && !$requestedHistory && !$reachedEndOfHistory) {
+			$requestedHistory = true;
+			$server.requestHistory($chatHistory.length, $historyOffset);
 		}
 	};
 
@@ -56,18 +36,18 @@
 	});
 
 	$: {
-		if (onWeb && $context.authenticated && $context.connected) {
+		if (onWeb && $authenticated && $connected) {
 			tick().then(() => {
-				console.log($context.authenticated);
+				console.log($authenticated);
 				listeners.push(
-					$context.server.on('chatMessage', async () => {
+					$server.on('chatMessage', async () => {
 						await tick();
 						historyItems.slice(-1)[0].scrollIntoView();
 					})
 				);
 
 				listeners.push(
-					$context.server.on('historyData', async ({ page, offset }) => {
+					$server.on('historyData', async ({ page, offset }) => {
 						await tick();
 						if (page === 0) {
 							historyItems.slice(-1)[0].scrollIntoView();
@@ -84,7 +64,7 @@
 
 	onDestroy(() => {
 		listeners.forEach((l) => {
-			$context.server.remove(l);
+			$server.remove(l);
 		});
 
 		if (historyContainer) {
@@ -93,8 +73,8 @@
 	});
 
 	const send = (message: string) => {
-		if ($context.authenticated) {
-			$context.server.sendChatMessage(message);
+		if ($authenticated) {
+			$server.sendChatMessage(message);
 		}
 	};
 
@@ -136,9 +116,9 @@
 	};
 </script>
 
-{#if !$context.connected}
+{#if !$connected}
 	<Connect />
-{:else if !$context.authenticated}
+{:else if !$authenticated}
 	<Login />
 {:else}
 	<div class="w-full flex justify-center">

@@ -100,7 +100,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </dependencies>
   </dependencyManagement>
   <properties>
-    <mainClass>anb.codes.mchat.MChatPlugin</mainClass>
+    <mainClass>codes.anb.mchat.MChatPlugin</mainClass>
     <author>Anbcodes</author>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

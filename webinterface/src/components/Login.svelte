@@ -2,8 +2,7 @@
 	import globalSetup from '../util/globalSetup';
 
 	import { onMount } from 'svelte';
-
-	import { context } from '../util/stores';
+	import { connected, server } from '../util/stores';
 
 	let loginInput = '';
 
@@ -12,8 +11,8 @@
 	});
 
 	const login = (code: string) => {
-		if ($context.connected) {
-			$context.server.login(code);
+		if ($connected) {
+			$server.login(code);
 		}
 	};
 </script>
