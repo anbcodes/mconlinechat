@@ -273,8 +273,13 @@
 	function drawLocations() {
 		$mapPoints[$mapDimension].forEach(({ x, z, type, name, id }) => {
 			let onMap = panZoom.toReal(x, z);
+			ctx.fillStyle = 'blue';
+			ctx.beginPath();
+			ctx.arc(onMap.x, onMap.y, 5, 0, 2 * Math.PI);
+			ctx.fill();
 			ctx.fillStyle = '#fff';
 			ctx.font = `14px Arial`;
+
 			let hasImage = false;
 			if (typeToImage[type]) {
 				try {
