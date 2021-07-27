@@ -14,7 +14,7 @@
 	};
 </script>
 
-<div class="flex pt-5">
+<div class="flex flex-wrap pt-5">
 	<div class="pr-5">Enter server name</div>
 	<input
 		class="bg-gray-700 rounded p-1"

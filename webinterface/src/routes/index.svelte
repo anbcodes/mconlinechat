@@ -30,9 +30,13 @@
 		}
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		globalSetup();
 		onWeb = true;
+		await tick();
+		if (historyContainer) {
+			historyItems.slice(-1)[0].scrollIntoView();
+		}
 	});
 
 	$: {
@@ -121,8 +125,8 @@
 {:else if !$authenticated}
 	<Login />
 {:else}
-	<div class="w-full flex justify-center">
-		<div class="w-2/3 bg-gray-800 rounded m-5 p-5 h-[50rem] flex-col flex">
+	<div class="w-full flex justify-center flex-grow min-h-0">
+		<div class="md:w-2/3 w-full md:bg-gray-800 rounded m-5 p-5 flex-col flex">
 			<div bind:this={historyContainer} class="flex-grow overflow-scroll p-1">
 				{#each [...$chatHistory].reverse() as page, i}
 					{#each [...page].reverse() as line, i2}

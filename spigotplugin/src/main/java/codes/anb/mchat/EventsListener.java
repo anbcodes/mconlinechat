@@ -4,13 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.stream.Collectors;
 
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonObject;
 
 import org.bukkit.event.EventHandler;
@@ -26,37 +26,43 @@ public class EventsListener implements Listener {
   @EventHandler
   public void onPlayerJoin(PlayerJoinEvent event) {
     Logger.get().debug("Join " + event.getJoinMessage());
-    // try {
-    // InputStream inputStream =
-    // getClass().getClassLoader().getResourceAsStream("apikey.txt");
-    // String apikey = new BufferedReader(new
-    // InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
+    try {
+      InputStream inputStream = getClass().getClassLoader().getResourceAsStream("apikey.txt");
+      String apikey = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
 
-    // if (apikey != null && !apikey.equals("")) {
-    // sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey +
-    // "&PushTitle="
-    // + event.getPlayer().getDisplayName() + "%20joined%20the%20server" +
-    // "&PushText=%20");
-    // }
-    // } catch (IOException e) {
-    // Logger.get().error("Failed to read apikey file", e);
-    // }
+      if (apikey != null && !apikey.equals("")) {
+        sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey + "&PushTitle="
+            + event.getPlayer().getDisplayName() + "%20joined%20the%20server" + "&PushText=%20");
+      }
+    } catch (IOException e) {
+      Logger.get().error("Failed to read apikey file", e);
+    }
     MChatPlugin.get().broadcastMessage(new ChatMessage(event.getJoinMessage(), ""));
   }
 
-  static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+  static final HttpClient client = HttpClient.newBuilder().build();
 
   private void sendGetRequest(String reqUrl) throws IOException {
-    GenericUrl url = new GenericUrl(reqUrl);
-    HttpRequest request = HTTP_TRANSPORT.createRequestFactory().buildGetRequest(url);
-    HttpResponse response = request.execute();
-    response.disconnect();
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(reqUrl)).timeout(Duration.ofMinutes(2)).GET().build();
+    client.sendAsync(request, BodyHandlers.ofString());
   }
 
   @EventHandler
   public void onPlayerLeave(PlayerQuitEvent event) {
     Logger.get().debug("Leave " + event.getQuitMessage());
     MChatPlugin.get().broadcastMessage(new ChatMessage(event.getQuitMessage(), ""));
+
+    try {
+      InputStream inputStream = getClass().getClassLoader().getResourceAsStream("apikey.txt");
+      String apikey = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining("\n"));
+
+      if (apikey != null && !apikey.equals("")) {
+        sendGetRequest("https://www.notifymydevice.com/push?ApiKey=" + apikey + "&PushTitle="
+            + event.getPlayer().getDisplayName() + "%20left%20the%20server" + "&PushText=%20");
+      }
+    } catch (IOException e) {
+      Logger.get().error("Failed to read apikey file", e);
+    }
   }
 
   @EventHandler

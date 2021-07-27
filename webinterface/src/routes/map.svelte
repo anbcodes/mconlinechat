@@ -19,9 +19,19 @@
 	import Login from '../components/Login.svelte';
 
 	let typeToImage: { [type: number]: HTMLImageElement } = {};
-
+	let web = false;
 	onMount(() => {
+		web = true;
 		globalSetup();
+	});
+
+	onDestroy(() => {
+		if (web) {
+			['pointerdown', 'pointerup', 'pointermove'].forEach((name) =>
+				document.removeEventListener(name, mouseEvents)
+			);
+			document.removeEventListener('touchmove', prevDefault, { passive: false });
+		}
 	});
 
 	$: {
@@ -46,9 +56,18 @@
 	// map
 	let canvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D;
-	const mouse = { x: 0, y: 0, button: false, wheel: 0, lastX: 0, lastY: 0, drag: false };
+	const mouse = {
+		x: 0,
+		y: 0,
+		button: false,
+		wheel: 0,
+		lastX: 0,
+		lastY: 0,
+		drag: false,
+		mobile: false
+	};
 	const gridSize = 128; // grid size in screen pixels for adaptive and world pixels for static
-	const scaleRate = 1.02; // Closer to 1 slower rate of change
+	let scaleRate = 1.02; // Closer to 1 slower rate of change
 	// Less than 1 inverts scaling change and same rule
 	// Closer to 1 slower rate of change
 	const topLeft: Point = { x: 0, y: 0 }; // holds top left of canvas in world coords.
@@ -90,25 +109,80 @@
 		}
 	};
 
+	const prevDefault = (e) => e.preventDefault();
+
 	$: {
 		if (canvas && canvas !== null) {
 			requestAnimationFrame(update);
 			console.log(canvas);
 			ctx = canvas.getContext('2d');
 
-			['mousedown', 'mouseup', 'mousemove'].forEach((name) =>
+			['pointerdown', 'pointerup', 'pointermove'].forEach((name) =>
 				document.addEventListener(name, mouseEvents)
 			);
 			document.addEventListener('wheel', mouseEvents, { passive: false });
+			document.addEventListener('touchmove', prevDefault, { passive: false });
 		}
 	}
+
+	let touchCache = [];
+	let prevDiff = -1;
 
 	function mouseEvents(e) {
 		if (canvas) {
 			const bounds = canvas.getBoundingClientRect();
 			mouse.x = e.pageX - bounds.left - scrollX;
 			mouse.y = e.pageY - bounds.top - scrollY;
-			mouse.button = e.type === 'mousedown' ? true : e.type === 'mouseup' ? false : mouse.button;
+			mouse.button =
+				e.type === 'pointerdown' ? true : e.type === 'pointerup' ? false : mouse.button;
+			if (e.type === 'pointerdown') {
+				touchCache.push(e);
+			}
+
+			if (e.type === 'pointerup') {
+				touchCache = touchCache.filter((v) => v.pointerId !== e.pointerId);
+			}
+
+			for (var i = 0; i < touchCache.length; i++) {
+				if (e.pointerId == touchCache[i].pointerId) {
+					touchCache[i] = e;
+					break;
+				}
+			}
+
+			// If two pointers are down, check for pinch gestures
+			if (touchCache.length == 2) {
+				mouse.button = true;
+				mouse.mobile = true;
+				mouse.x = touchCache[0].pageX - bounds.left - scrollX;
+				mouse.y = touchCache[0].pageY - bounds.top - scrollY;
+				// Calculate the distance between the two pointers
+				var curDiff = Math.abs(touchCache[0].clientX - touchCache[1].clientX);
+
+				var diffDiff = curDiff - prevDiff;
+
+				// if (prevDiff !== -1) {
+				// 	mouse.wheel = diffDiff;
+				// 	scaleRate = 1 + Math.abs(diffDiff * 0.003);
+				// }
+
+				if (prevDiff > 0) {
+					if (curDiff > prevDiff) {
+						// The distance between the two pointers has increased
+						console.log('Pinch moving OUT -> Zoom in', e);
+						mouse.wheel += Math.abs(diffDiff);
+					}
+					if (curDiff < prevDiff) {
+						// The distance between the two pointers has decreased
+						console.log('Pinch moving IN -> Zoom out', e);
+						mouse.wheel -= Math.abs(diffDiff);
+					}
+				}
+
+				// Cache the distance for the next move event
+				prevDiff = curDiff;
+			}
+
 			if (e.type === 'wheel') {
 				mouse.wheel += -e.deltaY;
 				e.preventDefault();
@@ -268,34 +342,33 @@
 {:else if !$authenticated}
 	<Login />
 {:else}
-	<div class="text-white p-5">
-		<div class="w-full flex justify-center">
-			<div class="w-2/3 flex-col flex">
-				<div class="w-full flex justify-around">
-					<div
-						class:border-b={$mapDimension === 0}
-						on:click={() => ($mapDimension = 0)}
-						class="text-gray-400 border-gray-400"
-					>
-						Overworld
-					</div>
-					<div
-						class:border-b={$mapDimension === 1}
-						on:click={() => ($mapDimension = 1)}
-						class="text-gray-400 border-gray-400"
-					>
-						Nether
-					</div>
-					<div
-						class:border-b={$mapDimension === 2}
-						on:click={() => ($mapDimension = 2)}
-						class="text-gray-400 border-gray-400"
-					>
-						End
-					</div>
+	<div class="text-white p-5 w-full flex items-center flex-grow flex-col">
+		<div class="md:w-2/3 w-full flex-col flex flex-grow">
+			<div class="w-full flex justify-around">
+				<div
+					class:border-b={$mapDimension === 0}
+					on:click={() => ($mapDimension = 0)}
+					class="text-gray-400 border-gray-400"
+				>
+					Overworld
 				</div>
-				<canvas bind:this={canvas} class="w-full rounded m-10 h-[50rem] flex-col flex" />
+				<div
+					class:border-b={$mapDimension === 1}
+					on:click={() => ($mapDimension = 1)}
+					class="text-gray-400 border-gray-400"
+				>
+					Nether
+				</div>
+				<div
+					class:border-b={$mapDimension === 2}
+					on:click={() => ($mapDimension = 2)}
+					class="text-gray-400 border-gray-400"
+				>
+					End
+				</div>
 			</div>
+			<!-- <canvas bind:this={canvas} class="w-full rounded m-10 min-h-0 flex-grow" /> -->
 		</div>
 	</div>
+	<canvas bind:this={canvas} class="w-screen h-screen absolute z-[-1] top-0 left-0" />
 {/if}
