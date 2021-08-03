@@ -104,10 +104,20 @@ public class CommandHandler implements TabExecutor {
       }
       return true;
     } else if (cmdName.equals("hide")) {
-      MChatPlugin.get().hiddenPlayers.add(player);
+      MChatPlugin.get().hiddenPlayers.add(player.getName());
+      player.sendMessage("You are now hidden");
+      JsonObject obj = new JsonObject();
+      obj.addProperty("type", "playerMove");
+      obj.addProperty("username", player.getDisplayName());
+      obj.addProperty("x", Integer.MAX_VALUE);
+      obj.addProperty("y", Integer.MIN_VALUE);
+      obj.addProperty("z", Integer.MAX_VALUE);
+      obj.addProperty("dimension", 1);
+      MChatPlugin.get().server.broadcastToAuthenticated(obj.toString());
       return true;
     } else if (cmdName.equals("show")) {
-      MChatPlugin.get().hiddenPlayers.removeIf(p -> p == player);
+      player.sendMessage("You are now shown");
+      MChatPlugin.get().hiddenPlayers.removeIf(p -> p == player.getName());
       return true;
     }
     return false;

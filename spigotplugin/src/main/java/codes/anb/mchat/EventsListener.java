@@ -83,7 +83,7 @@ public class EventsListener implements Listener {
   @EventHandler
   public void onPlayerMove(PlayerMoveEvent event) {
     JsonObject obj = new JsonObject();
-    if (MChatPlugin.get().hiddenPlayers.indexOf(event.getPlayer()) == -1) {
+    if (MChatPlugin.get().hiddenPlayers.indexOf(event.getPlayer().getName()) == -1) {
       obj.addProperty("type", "playerMove");
       obj.addProperty("username", event.getPlayer().getDisplayName());
       obj.addProperty("x", event.getTo().getX());

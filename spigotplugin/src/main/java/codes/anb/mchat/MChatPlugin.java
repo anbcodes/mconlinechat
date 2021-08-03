@@ -18,7 +18,7 @@ public class MChatPlugin extends JavaPlugin {
     public History history;
     public WorldMap map;
     public PointTypes pointTypes;
-    public List<Player> hiddenPlayers = new ArrayList<>();
+    public List<String> hiddenPlayers = new ArrayList<>();
     public Connection db;
 
     private static MChatPlugin instance;
